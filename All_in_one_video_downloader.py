@@ -10,24 +10,31 @@ from PyQt5 import QtGui
 
 class DownloadThread(QThread):
     progress_update = pyqtSignal(int)
+    download_complete = pyqtSignal()
 
     def __init__(self, video_url, download_path, quality):
         super().__init__()
         self.video_url = video_url
         self.download_path = download_path
         self.quality = quality
-
+        self.height = self.quality.strip('p');
     def run(self):
         ydl_opts = {
-            'format': f'bestvideo[height={self.quality}][ext=mp4]+bestaudio/best[ext=mp4]/best',
-            'outtmpl': f'{self.download_path}/%(title)s.mp4',
+            'format': f'bestvideo[height={self.height}][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height={self.height}]+bestaudio',
+            'outtmpl': f'{self.download_path}/%(title)s={self.height}p.mp4',
             'progress_hooks': [self.progress_hook],
         }
+        
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([self.video_url])
+            self.download_complete.emit()
+            self.progress_update.emit(0)
+
 
     def progress_hook(self, d):
-        if d['status'] == 'downloading':
+        if d['status'] == 'finished':
+         self.progress_update.emit(100)
+        elif d['status'] == 'downloading':
             progress_str = d['_percent_str']
             progress_percent = int(float(progress_str[7:12]))
             self.progress_update.emit(progress_percent)
@@ -117,7 +124,7 @@ class VideoDownloader(QWidget):
 
             quality_set = set()
             for format in formats:
-                if format.get('height'):
+                if format.get('height') and format.get('ext') == 'mp4':
                     quality_set.add(f"{format['height']}p")
 
             if not quality_set:
@@ -144,14 +151,17 @@ class VideoDownloader(QWidget):
 
         self.download_thread = DownloadThread(video_url, download_path, quality)
         self.download_thread.progress_update.connect(self.update_progress)
+        self.download_thread.download_complete.connect(self.show_download_complete_alert)
         self.download_thread.start()
 
     def update_progress(self, progress_percent):
         self.progress_bar.setValue(progress_percent)
-        if progress_percent == 100:
-            QMessageBox.information(self, 'Download Complete', 'Video downloaded successfully!')
-            self.progress_label.hide()
-            self.progress_bar.hide()
+
+    def show_download_complete_alert(self):
+     QMessageBox.information(self, 'Download Complete', 'Video downloaded successfully!')
+     self.progress_label.hide()
+     self.progress_bar.hide()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
