@@ -3,7 +3,7 @@
 
 
 Python PyQt5 application to download content from any plateform (800+ platforms supported)
-for see list of supported platforms click  [List of supported platforms](https://github.com/ketanmakwana2906/All_in_One-dl/blob/main/README.md)
+for see list of supported platforms click  [List of supported platforms](https://github.com/ketanmakwana2906/All_in_One-dl/blob/V1.0/supportedsites.md)
 
 ## Features
 
