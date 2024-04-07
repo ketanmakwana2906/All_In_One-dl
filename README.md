@@ -3,7 +3,7 @@
 
 
 Python PyQt5 application to download content from any plateform (800+ platforms supported)
-for see list of supported platforms click  [List of supported platforms](https://github.com/ketanmakwana2906/sony_liv_dl/raw/V1.0/dist/sony_liv_download_V1.exe)
+for see list of supported platforms click  [List of supported platforms](https://github.com/ketanmakwana2906/All_in_One-dl/blob/main/README.md)
 
 ## Features
 
