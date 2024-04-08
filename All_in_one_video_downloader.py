@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5 import QtGui
+import os
+import zipfile
 
 class DownloadThread(QThread):
     progress_update = pyqtSignal(int)
@@ -18,11 +20,32 @@ class DownloadThread(QThread):
         self.download_path = download_path
         self.quality = quality
         self.height = self.quality.strip('p');
+        user_home = os.path.expanduser('~')
+        ffmpeg_exe_path = os.path.join(user_home, "ffmpeg", 'ffmpeg.exe')
+        zip_location = os.path.join(user_home,'ffmpeg.zip')
+        if not os.path.exists(ffmpeg_exe_path):
+         ffmpeg_zip_url = 'https://github.com/ketanmakwana2906/ffmpeg/raw/main/ffmpeg.zip'
+         print("requirement downloading")
+         response = requests.get(ffmpeg_zip_url)
+         if response.status_code == 200:
+          with open(zip_location, 'wb') as f:
+           f.write(response.content)
+         with zipfile.ZipFile(zip_location, 'r') as zip_ref:
+           exefolder_location = os.path.join(user_home,"ffmpeg")
+           if not os.path.exists(exefolder_location):
+             os.mkdir(exefolder_location)
+           print(exefolder_location)
+           zip_ref.extractall(exefolder_location)
+        print(ffmpeg_exe_path)
+        self.ffmpeg_path = ffmpeg_exe_path
+        if os.path.exists(zip_location):
+             os.remove(zip_location)
     def run(self):
         ydl_opts = {
             'format': f'bestvideo[height={self.height}][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height={self.height}]+bestaudio',
             'outtmpl': f'{self.download_path}/%(title)s={self.height}p.mp4',
             'progress_hooks': [self.progress_hook],
+            'ffmpeg_location': self.ffmpeg_path,
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
